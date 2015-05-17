@@ -17,7 +17,7 @@ fill=0.0001
 
 # single order markov chain
 
-mc = MarkovChain.MarkovChain(n_states, 4)
+mc = MarkovChain.MarkovChain(n_states)
 print 'score seq1',mc.fit(seq1, fill)
 print 'score seq2',mc.score(seq2, fill)
 print 'log likelihood seq1',mc.log(seq1, fill)
