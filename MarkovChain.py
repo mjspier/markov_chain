@@ -21,7 +21,7 @@ class MarkovChain:
     compute Markov chain model
     with help of a state transition array
     """
-    def fit(self, states):
+    def fit(self, states, fill=0):
         if self.n_order == 1:
             # count transitions
             for i in xrange(0,len(states)-1):
@@ -41,33 +41,49 @@ class MarkovChain:
             t = row.sum()
             if t <> 0:
                 self.p[i] = row/t
-        return self.score(states)
+        return self.score(states, fill)
+
 
     """
-    compute score of transition array
-    according to the markov chain model
+    score which is the product of all probabilities
     """
-    def score(self, states):
-        tot = 0
+    def score(self, states, fill=0):
+        p = self.p.copy()
+        p[p == 0] = fill
+        prod = 1
         if self.n_order == 1:
             # sum all transition probabilities
             for i in xrange(0,len(states)-1):
                 s1 = states[i]-1
                 s2 = states[i+1]-1
-                tot += self.p[s1][s2]
-            return tot/len(states)
+                prod *= p[s1][s2]
+            return prod
         else:
             words = [states[i:i+self.n_order] for i in xrange(0,len(states)-self.n_order+1)]
             # count transitions
             for i in xrange(0,len(words)-1):
                 s1 = self.A.index(tuple(words[i]))
                 s2 = self.A.index(tuple(words[i+1]))
-                tot += self.p[s1][s2]
-            return tot/len(words)
+                prod *= p[s1][s2]
+            return prod
 
-
-class HigherOrderMarkovChain:
-
-    def __init__(self, n_states, n_order):
-        self.np = __import__("numpy")
-        self.p = self.np.zeros()
+    """
+    alternative score, log likelihood
+    """
+    def ll(self, states, fill=0):
+        p = self.p.copy()
+        p[p == 0] = fill
+        ll = 0
+        if self.n_order == 1:
+            for i in xrange(0,len(states)-1):
+                s1 = states[i]-1
+                s2 = states[i+1]-1
+                ll += self.np.log(p[s1][s2])
+            return ll
+        else:
+            words = [states[i:i+self.n_order] for i in xrange(0,len(states)-self.n_order+1)]
+            for i in xrange(0,len(words)-1):
+                s1 = self.A.index(tuple(words[i]))
+                s2 = self.A.index(tuple(words[i+1]))
+                ll += self.np.log(p[s1][s2])
+            return ll
